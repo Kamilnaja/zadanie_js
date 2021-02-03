@@ -1,17 +1,17 @@
-import './styles/main.css';
-
-document.addEventListener('DOMContentLoaded', function() {
+import './styles/main.css'; // czemu import do css w js??? 
+// wydzielić do osobnej metody to co się dzieje wewnątrz
+document.addEventListener('DOMContentLoaded', function() { // () => 
     let searchData;
     let newsData;
     let apiKey = 'ddb966e2-c9aa-439a-9228-28bfeb7f309d';
     let lastArticlesDate = new Date();
-    let phrase = document.getElementById('newsContentSearch').value;
+    let phrase = document.getElementById('newsContentSearch').value; // newsContentSearch do stałej
 
-    lastArticlesDate.setDate(lastArticlesDate.getDate() - 30);
-
+    lastArticlesDate.setDate(lastArticlesDate.getDate() - 30); // 30 - magic number, co to oznacza
+// osobna metoda poza 
     function formatDate(date) {
         let d = new Date(date),
-            month = '' + (d.getMonth() + 1),
+            month = '' + (d.getMonth() + 1), // String(d.getMonth() + 1) chyba czytelniejsze
             day = '' + d.getDate(),
             year = d.getFullYear();
 
@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let sectionsAll = 'sport|culture|business|books';
     let section = sectionsAll;
-
+// wynieść poza
     function addToReadLater(value) {
-        const readLaterData = localStorage.getItem('readLaterData');
+        const readLaterData = localStorage.getItem('readLaterData'); // readLaterData - jako globalny const
 
         const data = {
             id: value.id,
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             webTitle: value.webTitle,
         };
 
-        if (readLaterData) {
+        if (readLaterData) { // wynieść operacje w if i else do osobnych metod
             let localStorageValue = JSON.parse(readLaterData);
             const hasValue = localStorageValue.some(storageValue => storageValue.id === value.id);
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else {
             const localStorageValue = [data];
-            localStorage.setItem('readLaterData', JSON.stringify(localStorageValue));
+            localStorage.setItem('readLaterData', JSON.stringify(localStorageValue)); // można wynieść jakąś abstrakcje do odczytu i zapisu ls
             createToReadLaterSection();
         }
     }
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('activePageSelect').innerHTML = '';
         if (searchData) {
 
-            for(let i = 1; i <= searchData.response.pages; i++ ) {
+            for(let i = 1; i <= searchData.response.pages; i++ ) { // formatowanie, czemu pętla od 1, pominie pierwszy element
                 const newOption = document.createElement('option');
                 newOption.id = 'option' + i;
                 newOption.value = i.toString();
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('activePageSelect').appendChild(newOption);
             }
 
-            document.getElementById('activePageSelect').addEventListener('change', function() {
+            document.getElementById('activePageSelect').addEventListener('change', function() { // () => zamiast function 
                 fetchDataByPage(document.getElementById('activePageSelect').value);
             });
         }
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.getElementById('readLater').innerHTML = '';
 
-        if(readLaterData) {
+        if(readLaterData) { // formatowanie tu i poniżej
             for(let i = 0; i < readLaterData.length; i++) {
                 const newLi = document.createElement('li');
                 const id = readLaterData[i].id;
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newsTile.appendChild(newLi);
 
                 document.getElementById('readLater').appendChild(newsTile);
-                document.getElementById(`${id}`).addEventListener('click', function() {
+                document.getElementById(`${id}`).addEventListener('click', function() { // niepotrzebne `${id}`, samo id chyba też zadziała
                     removeFromReadLater(readLaterData[i].id);
                 });
             }
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const newsTile = document.createDocumentFragment();
         document.getElementById('newsList').innerText = '';
 
-        for(let i = 0; i < newsData.response.results.length; i++) {
+        for(let i = 0; i < newsData.response.results.length; i++) { // a jak nie będzie results ?
             const newLi = document.createElement('li');
             const id = 'news' + i;
 
@@ -142,9 +142,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchData() {
+        // url do osobnego consta z `${}`
+        // wynióslbym sam request do osobnej funkcji async i potem ją wywołał - przykład poniżej
+        // https://github.com/Kamilnaja/Pomodoro-Timer/blob/d1b40e15f9f3b397ad418a3d5a7d916d258bf71a/web/src/stats/store/actions/stats.actions.ts#L41
         fetch('https://content.guardianapis.com/search?q=' + phrase + '&page=1&page-size=10&from-date=' + formatDate(lastArticlesDate) + '&' + 'section=' + section + '&api-key=' + apiKey, {
             method: 'GET'
-        })
+        }) // nie obsługujemy błędu, trzeba sprawdzić czy response.ok i dopiero potem parsować jsona
             .then(response => response.json())
             .then(data => {
                 searchData = data;
@@ -152,6 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 createNewsArticlesContent();
                 preperSearchForm();
             });
+        
+        // .catch((e) => )
+        
     }
 
     function changeSection(selectedSection) {
@@ -165,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchDataByPage(pageNumber) {
+        // url w `` i ${}
         fetch('https://content.guardianapis.com/search?q=' + phrase + '&page=' + pageNumber + '&page-size=10&from-date=' + formatDate(lastArticlesDate) + '&' + 'section=' + section + '&api-key=' + apiKey, {
             method: 'GET'
         })
